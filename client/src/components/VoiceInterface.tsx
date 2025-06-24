@@ -216,12 +216,20 @@ export function VoiceInterface({ onGenerate, mode, isGenerating }: VoiceInterfac
         <Button
           onClick={handleGenerate}
           disabled={!transcript.trim() || isGenerating}
-          className="px-12 py-4 bg-primary hover:bg-primary/90 font-semibold text-lg shadow-lg disabled:opacity-50"
+          className="px-12 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           size="lg"
         >
           <Wand2 className="mr-3 h-5 w-5" />
           {isGenerating ? "Generating..." : getGenerateButtonText()}
         </Button>
+        
+        {/* Helper text */}
+        <p className="text-sm text-gray-500 mt-2">
+          {!transcript.trim() 
+            ? "Speak something first to enable generation" 
+            : `Ready to generate ${mode === 'image' ? '3 images' : mode === 'saga' ? 'story images' : '3 videos'}`
+          }
+        </p>
       </div>
     </div>
   );
