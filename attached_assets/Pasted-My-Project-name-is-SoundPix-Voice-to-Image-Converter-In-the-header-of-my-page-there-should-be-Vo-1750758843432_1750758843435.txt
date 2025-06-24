@@ -1,0 +1,74 @@
+My Project name is SoundPix, Voice to Image Converter. 
+In the header of my page there should be Voice to Saga Modebutton,  Voice to Video Generate button, your design button. Profile Icon on right.
+In home page there should be headline as  "SoundPix" and "~Voice to image" as Caption.
+ Below that a Medium Sized mic icon with animation .There should be start Speaking button ,Stops Speaking button Reset button .When I click Start Speaking button Voice Icon should On for taking input prompt with waves and and when I click stop speaking button, it should off.when I speak some thing there should be text visible about what I speak . Here there should be button selection as dropdown for  selecting telugu,hindi,english voice inputs. When I start speaking It should generate transcript and when I want to change the text what I spoke , I will click Reset button. I am using Clipdrop API It should generate 3 different  Images from One prompt.Even If I speak Telugu , Hindi . It should give transcript  in that language only and it should internally translate  into English and give 3 Images.Here I am using Clipdrop API key.
+
+
+After clicking Voice to Saga Mode button . It should be give like
+User starts voice recording.
+
+They speak a story, broken into multiple lines or sentences, like:
+
+“Once upon a time in a quiet village...”
+
+“There was a boy who loved to explore the forest...”
+
+“One day, he found a glowing stone.”
+
+Detection Phase:
+
+Each pause or period (.) is treated as a new scene.
+
+You can break the voice prompt into multiple text segments using:
+
+SpeechRecognition.onresult[i].transcript.split(/[.?!]/)
+
+Or use a "Next" button to manually segment the story line by line.
+Image generation Phase:
+For each sentence/line, generate one image.
+So, if the story has 5 lines, generate 5 images, one for each scene.
+Optionally, allow users to adjust individual text prompts before generating.
+Slideshow/Storyboard View:
+Display all images in a row/grid with each line of story below the image.
+Add "Play Story" button with voice-over (user’s original narration).
+📊 Number of Images:
+Default: 1 image per sentence or voice segment.
+Allow users to generate more for any scene if they wish (like a “+” button: Add Variant).
+Let user preview the segmented story and edit any line before generation.
+
+Store the full session as a “Project” with images + original narration.
+Generate All At Once (Faster for users)
+Once narration is complete, split the story → send all prompts → get back all images.
+
+
+
+After clicking Voice to Video Generate Mode button  : It should give interface as 
+same like voice to Image , It should give 3 videos from one prompt .
+Here I am using RunwayMl API Key.
+
+
+When I Click "Your Design" button . It should give: -
+Each user has a personal gallery storing:
+Folders with titles
+Subfolders like "Pre-Images", "Modified". Whatever the Images They like . They have save button and download button.When I click save button , it should go to "your design" button, in that it should have create folder option with a  title.
+Option to rename folders, delete images, and download ZIPs.
+
+
+
+and Export button for exporting project as:
+ZIP of all images
+PDF
+
+Swipe to navigate folders
+
+There should be : Enable login/signup using email or Google. with login/signup button.
+
+
+Here When it comes to database .I will provide Supabase API Key. give me light theme with blue color buttons and side bar black background ,white color text. and Header buttons different color.
+
+I want you to ReactVite for this project.
+
+Atlast I will provide
+Clipdrop API key, RunwayML API key, Supabase Database URL and Supabase API key.
+
+
