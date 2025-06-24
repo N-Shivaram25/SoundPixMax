@@ -4,13 +4,15 @@ import {
   BookOpen, 
   Video, 
   Palette, 
-  User 
+  User,
+  Download
 } from "lucide-react";
 
 interface HeaderProps {
   onModeChange: (mode: 'image' | 'saga' | 'video') => void;
   onGalleryOpen: () => void;
   onAuthOpen: () => void;
+  onExport: () => void;
   currentMode: 'image' | 'saga' | 'video';
   user: any | null;
 }
@@ -19,6 +21,7 @@ export function Header({
   onModeChange, 
   onGalleryOpen, 
   onAuthOpen, 
+  onExport,
   currentMode,
   user 
 }: HeaderProps) {
@@ -68,6 +71,14 @@ export function Header({
           >
             <Palette className="mr-2 h-4 w-4" />
             Your Design
+          </Button>
+          
+          <Button
+            onClick={onExport}
+            className="px-6 py-2 bg-purple-600 hover:bg-purple-700 font-medium transition-colors duration-200"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export
           </Button>
           
           <Button

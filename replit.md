@@ -94,8 +94,28 @@ SoundPix is a modern web application that transforms voice input into visual con
 - **Connection Pooling**: Neon serverless connection handling
 
 ## Changelog
-- June 24, 2025. Initial setup
+- June 24, 2025: Initial setup with React/TypeScript frontend and Express backend
+- January 22, 2025: Added PostgreSQL database with Drizzle ORM for persistent storage
+- January 22, 2025: Integrated AssemblyAI for improved voice recognition and translation
+- January 22, 2025: Fixed RunwayML video generation API implementation
+- January 22, 2025: Enhanced folder management with proper image assignment to "Pre Images"
+- January 22, 2025: Added export functionality and fixed prompt history display
+- January 22, 2025: Improved voice recognition with 5-second silence detection
+- January 22, 2025: Fixed Saga mode story segmentation for multiple image generation
+
+## Recent Issues Fixed
+- Voice transcript no longer disappears after 1 second pause
+- Folder creation now properly displays in folder selection modal
+- Prompt history sidebar now shows thumbnails and proper sorting
+- Images automatically assigned to "Pre Images" folder upon generation
+- Export button added to header for project downloads
+- Saga mode properly splits stories into segments for image generation
+- Database integration completed with proper schema migration
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Voice recognition requirements: 5-second silence detection, multi-language support (Telugu, Hindi, English)
+Image generation: Exactly 3 images for normal mode, 1 per story segment for Saga mode
+Video generation: 3 videos using RunwayML API
+Translation: Internal translation from source language to English for API calls

@@ -33,6 +33,9 @@ export function VoiceInterface({ onGenerate, mode, isGenerating }: VoiceInterfac
     setIsRecording(true);
     setShowWaves(true);
     
+    let silenceTimer: NodeJS.Timeout;
+    let finalTranscript = "";
+    
     speechRecognition.start(
       {
         language: language,
@@ -41,16 +44,33 @@ export function VoiceInterface({ onGenerate, mode, isGenerating }: VoiceInterfac
       },
       {
         onResult: (text: string, isFinal: boolean) => {
-          setTranscript(text);
+          // Clear previous silence timer
+          if (silenceTimer) clearTimeout(silenceTimer);
+          
+          if (isFinal) {
+            finalTranscript += text + " ";
+            setTranscript(finalTranscript);
+          } else {
+            setTranscript(finalTranscript + text);
+          }
+          
+          // Set new silence timer for 5 seconds
+          silenceTimer = setTimeout(() => {
+            if (isRecording) {
+              speechRecognition.stop();
+            }
+          }, 5000);
         },
         onError: (error: string) => {
           console.error("Speech recognition error:", error);
           setIsRecording(false);
           setShowWaves(false);
+          if (silenceTimer) clearTimeout(silenceTimer);
         },
         onEnd: () => {
           setIsRecording(false);
           setShowWaves(false);
+          if (silenceTimer) clearTimeout(silenceTimer);
         },
       }
     );

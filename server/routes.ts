@@ -222,33 +222,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate 3 videos using RunwayML API
       const videoPromises = Array(3).fill(null).map(async (_, index) => {
-        const response = await fetch('https://api.runwayml.com/v1/generate', {
+        const response = await fetch('https://api.runwayml.com/v1/image_to_video', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${runwayApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: text,
-            model: 'gen2',
-            duration: 4,
+            promptText: text,
+            seed: Math.floor(Math.random() * 1000000),
+            exploreMode: true,
+            watermark: false,
+            motion_bucket_id: 127,
+            fps: 24,
+            duration: "5s",
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`Video generation failed: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error('RunwayML API Error:', response.status, errorText);
+          throw new Error(`Video generation failed: ${response.status} ${errorText}`);
         }
 
         const result = await response.json();
         
-        // Save video to storage
-        const video = await storage.createVideo({
-          promptId,
-          videoUrl: result.video_url,
-          thumbnailUrl: result.thumbnail_url,
-        });
+        // For RunwayML, we need to poll for the video completion
+        let taskId = result.id;
+        let videoResult = result;
+        
+        // Poll until video is ready
+        while (videoResult.status === 'running' || videoResult.status === 'pending') {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          const statusResponse = await fetch(`https://api.runwayml.com/v1/tasks/${taskId}`, {
+            headers: {
+              'Authorization': `Bearer ${runwayApiKey}`,
+            },
+          });
+          
+          if (statusResponse.ok) {
+            videoResult = await statusResponse.json();
+          } else {
+            break;
+          }
+        }
+        
+        if (videoResult.status === 'succeeded' && videoResult.output) {
+          // Save video to storage
+          const video = await storage.createVideo({
+            promptId,
+            videoUrl: videoResult.output[0] || '',
+            thumbnailUrl: videoResult.output[0] || '',
+          });
 
-        return video;
+          return video;
+        } else {
+          throw new Error('Video generation did not complete successfully');
+        }
       });
 
       const videos = await Promise.all(videoPromises);
@@ -259,17 +290,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Translation route
+  // AssemblyAI transcription and translation route
+  app.post("/api/transcribe", async (req, res) => {
+    try {
+      const { audioData, language } = req.body;
+      
+      const assemblyaiApiKey = process.env.ASSEMBLYAI_API_KEY;
+      if (!assemblyaiApiKey) {
+        return res.status(500).json({ error: "AssemblyAI API key not configured" });
+      }
+
+      // Upload audio to AssemblyAI
+      const uploadResponse = await fetch('https://api.assemblyai.com/v2/upload', {
+        method: 'POST',
+        headers: {
+          'authorization': assemblyaiApiKey,
+          'content-type': 'application/octet-stream',
+        },
+        body: audioData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload audio');
+      }
+
+      const { upload_url } = await uploadResponse.json();
+
+      // Request transcription
+      const transcriptResponse = await fetch('https://api.assemblyai.com/v2/transcript', {
+        method: 'POST',
+        headers: {
+          'authorization': assemblyaiApiKey,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          audio_url: upload_url,
+          language_code: language === 'te' ? 'te' : language === 'hi' ? 'hi' : 'en',
+          auto_chapters: false,
+        }),
+      });
+
+      const transcript = await transcriptResponse.json();
+      
+      // Poll for completion
+      let transcriptData = transcript;
+      while (transcriptData.status !== 'completed' && transcriptData.status !== 'error') {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const pollResponse = await fetch(`https://api.assemblyai.com/v2/transcript/${transcript.id}`, {
+          headers: { 'authorization': assemblyaiApiKey },
+        });
+        transcriptData = await pollResponse.json();
+      }
+
+      if (transcriptData.status === 'error') {
+        throw new Error('Transcription failed');
+      }
+
+      // Translate to English if needed
+      let translatedText = transcriptData.text;
+      if (language !== 'en') {
+        const translateResponse = await fetch('https://api.assemblyai.com/v2/lemur/v3/generate/task', {
+          method: 'POST',
+          headers: {
+            'authorization': assemblyaiApiKey,
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            transcript_ids: [transcript.id],
+            prompt: `Translate the following text to English: "${transcriptData.text}"`,
+          }),
+        });
+
+        if (translateResponse.ok) {
+          const translateData = await translateResponse.json();
+          translatedText = translateData.response || transcriptData.text;
+        }
+      }
+
+      res.json({ 
+        originalText: transcriptData.text,
+        translatedText: translatedText 
+      });
+    } catch (error) {
+      console.error('Transcription error:', error);
+      res.status(500).json({ error: "Transcription failed" });
+    }
+  });
+
+  // Translation route (fallback)
   app.post("/api/translate", async (req, res) => {
     try {
       const { text, targetLanguage = 'en' } = req.body;
       
-      // Simple translation logic - in production, use Google Translate API
       if (targetLanguage === 'en') {
         return res.json({ translatedText: text });
       }
       
-      // Mock translation for demo - replace with actual Google Translate API
       res.json({ translatedText: text });
     } catch (error) {
       res.status(500).json({ error: "Translation failed" });

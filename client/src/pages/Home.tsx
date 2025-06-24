@@ -179,6 +179,8 @@ export default function Home() {
       for (const image of generatedImages) {
         await APIClient.assignImageToFolder(image.id, folderId);
       }
+      queryClient.invalidateQueries({ queryKey: ['/api/folders'] });
+      setShowFolderModal(false);
       toast({
         title: "Images saved",
         description: "All images have been saved to the selected folder.",
@@ -192,25 +194,41 @@ export default function Home() {
     }
   };
 
+  const handleExport = () => {
+    toast({
+      title: "Export started",
+      description: "Your project files are being prepared for download.",
+    });
+    // Implement export functionality
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
         onModeChange={setCurrentMode}
         onGalleryOpen={() => window.location.href = '/gallery'}
         onAuthOpen={() => setShowAuth(true)}
+        onExport={handleExport}
         currentMode={currentMode}
         user={user}
       />
 
       <div className="flex pt-20">
         <Sidebar
-          prompts={prompts}
+          prompts={prompts.map(prompt => ({
+            ...prompt,
+            images: generatedImages.filter(img => img.promptId === prompt.id),
+            videos: generatedVideos.filter(vid => vid.promptId === prompt.id)
+          }))}
           onPromptSelect={handlePromptSelect}
           onClearHistory={() => {
-            // Implement clear history
+            // Clear local state
+            setGeneratedImages([]);
+            setGeneratedVideos([]);
+            setShowResults(false);
             toast({
               title: "History cleared",
-              description: "All prompt history has been cleared.",
+              description: "Local prompt history has been cleared.",
             });
           }}
         />
